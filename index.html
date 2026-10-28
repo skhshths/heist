@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HEIST</title>
+  <meta name="description" content="Plan the perfect heist on a blueprint, then watch it play out.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307142b'/%3E%3Cpath d='M8 22 L16 8 L24 22 Z' fill='none' stroke='%234fd1ff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='18' r='2.5' fill='%23ffd166'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- title -->
+    <section id="title" class="screen">
+      <canvas id="title-bg"></canvas>
+      <div class="title-card">
+        <div class="kicker">a planning game</div>
+        <h1 class="logo">HEIST</h1>
+        <p class="tagline">Draw the plan. Time every step. Then let it run, and hope you got it right.</p>
+        <div class="title-buttons">
+          <button class="btn primary big" id="play-btn">Plan a job</button>
+          <button class="btn ghost big" id="how-btn">How to play</button>
+        </div>
+      </div>
+      <button class="sound-toggle" id="sound-title" title="Sound (M)"></button>
+    </section>
+
+    <!-- level select -->
+    <section id="select" class="screen hidden">
+      <header class="select-head">
+        <button class="btn ghost" id="select-back">&larr; Title</button>
+        <h2>Jobs</h2>
+        <div class="total-stars" id="total-stars"></div>
+      </header>
+      <div class="level-grid" id="level-grid"></div>
+    </section>
+
+    <!-- planner / run -->
+    <section id="game" class="screen hidden">
+      <header class="topbar">
+        <button class="btn ghost" id="game-back" title="Jobs (Esc)">&larr; Jobs</button>
+        <div class="level-title">
+          <div class="level-name" id="level-name"></div>
+          <div class="objectives" id="objectives"></div>
+        </div>
+        <div class="spacer"></div>
+        <div class="tool-group" id="plan-tools">
+          <button class="btn icon" id="undo-btn" title="Undo (Ctrl+Z)">&#8630;</button>
+          <button class="btn icon" id="redo-btn" title="Redo (Ctrl+Y)">&#8631;</button>
+          <button class="btn ghost" id="reset-btn" title="Clear the whole plan">Clear plan</button>
+        </div>
+        <button class="sound-toggle small" id="sound-game" title="Sound (M)"></button>
+        <button class="btn primary" id="execute-btn" title="Run the plan (Enter)">Execute &#9654;</button>
+      </header>
+
+      <div class="game-body">
+        <div class="stage" id="stage">
+          <canvas id="map"></canvas>
+          <div class="coach hidden" id="coach">
+            <div class="coach-text" id="coach-text"></div>
+            <div class="coach-foot"><span id="coach-count"></span><button class="link" id="coach-next">Next tip</button><button class="link" id="coach-close">Hide</button></div>
+          </div>
+          <div class="live hidden" id="live"><span class="dot"></span>LIVE</div>
+          <div class="banner hidden" id="banner"></div>
+          <div class="toast" id="toast"></div>
+          <div class="result hidden" id="result"></div>
+        </div>
+
+        <aside class="sidebar" id="sidebar">
+          <div class="crew-list" id="crew-list"></div>
+          <div class="plan-head">
+            <h3 id="plan-title">Plan</h3>
+            <span class="plan-sub" id="plan-sub"></span>
+          </div>
+          <ol class="steps" id="steps"></ol>
+          <div class="actions" id="actions">
+            <button class="act" data-act="wait"><b>W</b>Wait 1s</button>
+            <button class="act" data-act="grab"><b>G</b>Grab</button>
+            <button class="act" data-act="hack"><b>H</b>Hack</button>
+            <button class="act" data-act="ambush"><b>A</b>Ambush</button>
+          </div>
+          <div class="keys">
+            <span><kbd>Click</kbd> walk there</span>
+            <span><kbd>Right-click</kbd> undo last step</span>
+            <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> pick crew</span>
+            <span><kbd>Space</kbd> preview</span>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="timeline">
+        <div class="tl-controls">
+          <button class="btn icon play" id="play-preview" title="Preview the plan (Space)">&#9654;</button>
+          <div class="clock" id="clock">0:00.0</div>
+          <div class="speeds" id="speeds">
+            <button data-speed="0.5">&frac12;&times;</button>
+            <button data-speed="1" class="on">1&times;</button>
+            <button data-speed="2">2&times;</button>
+            <button data-speed="4">4&times;</button>
+          </div>
+          <div class="tl-note" id="tl-note">Drag the timeline to see every moment of the plan.</div>
+        </div>
+        <canvas id="timeline"></canvas>
+      </footer>
+    </section>
+
+    <!-- how to play -->
+    <div class="modal-wrap hidden" id="help">
+      <div class="modal">
+        <h2>How to play</h2>
+        <ol class="how">
+          <li><b>Plan.</b> Pick a crew member and click the blueprint to walk them there. Add waits and actions (grab, hack, ambush) to build their plan. Every crew member's plan runs at the same time.</li>
+          <li><b>Check.</b> Drag the timeline to see exactly where everyone will be at any second: your crew, the guards, where the cameras point and which lasers are on. Press <kbd>Space</kbd> to watch it move.</li>
+          <li><b>Execute.</b> When you're sure, run it. You can't touch anything once it starts. Stay out of every flashlight and camera, never cross a live laser, and don't leave a body where someone will see it.</li>
+          <li><b>Escape.</b> Get the score <span class="gold">&#9670;</span> and everyone to the green exit. Bonus loot <span class="purple">&#9670;</span> and beating par earn extra stars.</li>
+        </ol>
+        <div class="crew-help" id="crew-help"></div>
+        <button class="btn primary" id="help-close">Got it</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
